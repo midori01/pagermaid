@@ -5,7 +5,7 @@ git clone https://github.com/TeamPGM/PagerMaid-Pyro.git /var/lib/pagermaid
 pip3 install -r /var/lib/pagermaid/requirements.txt --break-system-packages
 mkdir -p /var/lib/pagermaid/data
 wget -P /var/lib/pagermaid/data https://raw.githubusercontent.com/midori01/pagermaid/refs/heads/main/data/config.yml
-sudo cat <<'TEXT' > /etc/systemd/system/pagermaid.service
+cat <<'TEXT' > /etc/systemd/system/pagermaid.service
 [Unit]
 Description=PagerMaid-Pyro Telegram Utility Daemon
 After=network.target
