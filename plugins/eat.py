@@ -206,7 +206,7 @@ async def downloadFileByIds(ids, context):
 @listener(
     is_plugin=True,
     outgoing=True,
-    command="x",
+    command="eat",
     description="生成一张 吃头像 图片\n"
     "可选：当第二个参数是数字时，读取预存的配置；\n\n"
     "当第二个参数是.开头时，头像旋转180°，并且判断r后面是数字则读取对应的配置生成\n\n"
