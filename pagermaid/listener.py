@@ -84,7 +84,7 @@ def listener(**args) -> CommandHandlerDecorator:
             if parent_command is None
             else f"{parent_command} {command}"
         )
-        pattern = rf"^(~|，){real_command}(?: |$)([\s\S]*)"
+        pattern = rf"^(,|，){real_command}(?: |$)([\s\S]*)"
         sudo_pattern = rf"^(/){real_command}(?: |$)([\s\S]*)"
     if pattern is not None and not pattern.startswith("(?i)"):
         args["pattern"] = f"(?i){pattern}"
