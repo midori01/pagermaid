@@ -31,4 +31,3 @@ if [[ -z "$new_prefix" ]]; then
     exit 1
 fi
 sed -i.bak "s/,|，/${new_prefix}/g" /var/lib/pagermaid/pagermaid/listener.py
-cd /var/lib/pagermaid && python3 -m pagermaid
