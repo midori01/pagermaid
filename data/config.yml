@@ -11,7 +11,7 @@ allow_analytic: "False"
 ipv6: "False"
 silent: "True"
 use_pb: "True"
-
+log_chatid: "me"
 disabled_cmd:
   - update
 
@@ -25,3 +25,11 @@ timezone: "Asia/Tokyo"
 time_form: "%H:%M"
 date_form: "%A %y/%m/%d"
 start_form: "%m/%d %H:%M"
+
+proxy_addr: ""
+proxy_port: ""
+http_addr: ""
+http_port: ""
+mtp_addr: ""
+mtp_port: ""
+mtp_secret: ""
