@@ -12,8 +12,11 @@ ipv6: "False"
 silent: "True"
 use_pb: "True"
 
+disabled_cmd:
+  - update
+
 git_source: "https://v2.xtaolabs.com/"
-git_ssh: "https://github.com/TeamPGM/PagerMaid-Pyro.git"
+git_ssh: "https://github.com/midori01/pagermaid.git"
 
 application_language: "en"
 application_region: "Japan"
