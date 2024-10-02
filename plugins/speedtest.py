@@ -100,7 +100,6 @@ async def run_speedtest(request: AsyncClient, message: Message):
         return lang('speedtest_ConnectFailure'), None
 
     des = (
-        f"**Ookla® Speedtest** \n"
         f"`Provider` - `{result['isp']}`\n"
         f"`ServerID` - `{result['server']['id']}`\n"
         f"`Sponsor ` - `{result['server']['name']}`\n"
@@ -140,7 +139,7 @@ async def get_all_ids(request):
         else ("No Server Available", None)
     )
 
-@listener(command="st",
+@listener(command="speedtest",
           need_admin=True,
           description=lang('speedtest_des'),
           parameters="(list/server id)")
