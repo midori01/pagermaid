@@ -11,6 +11,7 @@ allow_analytic: "False"
 ipv6: "False"
 silent: "True"
 use_pb: "True"
+log: "False"
 log_chatid: "me"
 disabled_cmd:
   - update
