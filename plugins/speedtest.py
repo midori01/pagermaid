@@ -49,13 +49,13 @@ async def run_speedtest(request: AsyncClient, message: Message):
     result = test.results.dict()
     des = (
         f"**Speedtest** \n"
-        f"Server: `{result['server']['name']} - "
-        f"{result['server']['cc']}` \n"
         f"Sponsor: `{result['server']['sponsor']}` \n"
-        f"Upload: `{unit_convert(result['upload'])}` \n"
+        f"Location: `{result['server']['name']}, "
+        f"{result['server']['cc']}` \n"
         f"Download: `{unit_convert(result['download'])}` \n"
-        f"Latency: `{result['ping']}` \n"
-        f"Timestamp: `{result['timestamp']}`"
+        f"Upload: `{unit_convert(result['upload'])}` \n"
+        f"Latency: `{result['ping']} ms` \n"
+        f"Time: `{result['timestamp']}`"
     )
     if result["share"]:
         data = await request.get(
@@ -88,7 +88,7 @@ async def get_all_ids():
 
 
 @listener(
-    command="speedtest",
+    command="s",
     description=lang("speedtest_des"),
     parameters="(Server ID/测速点列表)",
 )
