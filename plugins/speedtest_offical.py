@@ -16,7 +16,7 @@ from pagermaid.single_utils import safe_remove
 from pagermaid.enums import Client, Message, AsyncClient
 from pagermaid.utils import lang
 
-speedtest_path = "/var/lib/pagermaid/plugins/speedtest-cli/speedtest"
+speedtest_path = "/var/lib/pagermaid/plugins/speedtest"
 
 async def download_cli(request):
     speedtest_version = "1.2.0"
@@ -25,7 +25,7 @@ async def download_cli(request):
         machine = "x86_64"
     filename = f"ookla-speedtest-{speedtest_version}-linux-{machine}.tgz"
     speedtest_url = f"https://install.speedtest.net/app/cli/{filename}"
-    path = "/var/lib/pagermaid/plugins/speedtest-cli/"
+    path = "/var/lib/pagermaid/plugins/"
     if not exists(path):
         makedirs(path)
     data = await request.get(speedtest_url)
