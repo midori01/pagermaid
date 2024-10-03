@@ -3,6 +3,7 @@ import contextlib
 from PIL import Image
 from os.path import exists
 from httpx import ReadTimeout
+from datetime import datetime
 
 from pagermaid.listener import listener
 from pagermaid.single_utils import safe_remove
@@ -53,7 +54,7 @@ async def run_speedtest(request: AsyncClient, message: Message):
         f"[下载] `{unit_convert(result['download'])}` \n"
         f"[上传] `{unit_convert(result['upload'])}` \n"
         f"[时延] `{result['ping']} ms` \n"
-        f"[时间] `{result['timestamp']}`"
+        f"[时间] `{result['timestamp'].replace('T', ' ').split('.')[0].replace('Z', '')}`"
     )
     if result["share"]:
         data = await request.get(
