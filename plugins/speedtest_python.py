@@ -49,11 +49,9 @@ async def run_speedtest(request: AsyncClient, message: Message):
         test.results.share()
     result = test.results.dict()
     des = (
-        f"[测速点] `{result['server']['sponsor']}` \n"
-        f"[位置] `{result['server']['name']}, {result['server']['cc']}` \n"
-        f"[下载] `{unit_convert(result['download'])}` \n"
-        f"[上传] `{unit_convert(result['upload'])}` \n"
-        f"[时延] `{result['ping']} ms` \n"
+        f"[测速点] `{result['server']['sponsor']}`\n"
+        f"[位置] `{result['server']['name']}, {result['server']['cc']} ⇔{result['ping']} ms`\n"
+        f"[速度] `↓{unit_convert(result['download'])} ↑{unit_convert(result['upload'])}`\n"
         f"[时间] `{result['timestamp'].replace('T', ' ').split('.')[0].replace('Z', '')}`"
     )
     if result["share"]:
