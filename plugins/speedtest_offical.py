@@ -57,11 +57,11 @@ async def unit_convert(byte):
     power = 1000
     zero = 0
     units = {
-        0: '',
-        1: 'Kbps',
-        2: 'Mbps',
-        3: 'Gbps',
-        4: 'Tbps'
+        0:'',
+        1:'Kbps',
+        2:'Mbps',
+        3:'Gbps',
+        4:'Tbps'
     }
     byte = byte * 8
     while byte > power:
@@ -103,9 +103,7 @@ async def run_speedtest(request: AsyncClient, message: Message):
         f"[服务商] `{result['isp']}`\n"
         f"[测速点] `{result['server']['name']} (ID: {result['server']['id']})`\n"
         f"[位置] `{result['server']['location']}, {result['server']['country']}`\n"
-        f"[下载] `{await unit_convert(result['download']['bandwidth'])}`\n"
-        f"[上传] `{await unit_convert(result['upload']['bandwidth'])}`\n"
-        f"[时延] `{result['ping']['latency']} ms`"
+        f"[速度] `⇔{result['ping']['latency']}ms ↓{await unit_convert(result['download']['bandwidth'])} ↑{await unit_convert(result['upload']['bandwidth'])}`"
     )
 
     if result["result"]["url"]:
