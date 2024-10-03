@@ -86,9 +86,9 @@ async def run_speedtest(request: AsyncClient, message: Message):
         await download_cli(request)
 
     command = (
-        f"{speedtest_path} --accept-license --accept-gdpr -s {message.arguments} -f json"
+        f"sudo {speedtest_path} --accept-license --accept-gdpr -s {message.arguments} -f json"
     ) if str.isdigit(message.arguments) else (
-        f"{speedtest_path} --accept-license --accept-gdpr -f json"
+        f"sudo {speedtest_path} --accept-license --accept-gdpr -f json"
     )
 
     outs, errs, code = await start_speedtest(command)
