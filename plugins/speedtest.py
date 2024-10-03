@@ -48,13 +48,12 @@ async def run_speedtest(request: AsyncClient, message: Message):
         test.results.share()
     result = test.results.dict()
     des = (
-        f"**Speedtest**\n"
-        f"[测速点/Sponsor] `{result['server']['sponsor']}` \n"
-        f"[位置/Location] `{result['server']['name']}, {result['server']['cc']}` \n"
-        f"[下载/Download] `{unit_convert(result['download'])}` \n"
-        f"[上传/Upload] `{unit_convert(result['upload'])}` \n"
-        f"[时延/Latency] `{result['ping']} ms` \n"
-        f"[时间/Time] `{result['timestamp']}`"
+        f"[测速点] `{result['server']['sponsor']}` \n"
+        f"[位置] `{result['server']['name']}, {result['server']['cc']}` \n"
+        f"[下载] `{unit_convert(result['download'])}` \n"
+        f"[上传] `{unit_convert(result['upload'])}` \n"
+        f"[时延] `{result['ping']} ms` \n"
+        f"[时间] `{result['timestamp']}`"
     )
     if result["share"]:
         data = await request.get(
