@@ -11,7 +11,7 @@ from pagermaid.utils import lang
 
 @listener(
     is_plugin=False,
-    command="dme",
+    command="d",
     need_admin=True,
     description=lang("sp_des"),
     parameters=lang("sp_parameters"),
