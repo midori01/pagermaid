@@ -86,9 +86,9 @@ async def run_speedtest(request: AsyncClient, message: Message):
         await download_cli(request)
 
     command = (
-        f"sudo {speedtest_path} --accept-license --accept-gdpr -s {message.arguments} -f json"
+        f"{speedtest_path} --accept-license --accept-gdpr -s {message.arguments} -f json"
     ) if str.isdigit(message.arguments) else (
-        f"sudo {speedtest_path} --accept-license --accept-gdpr -f json"
+        f"{speedtest_path} --accept-license --accept-gdpr -f json"
     )
 
     outs, errs, code = await start_speedtest(command)
@@ -100,14 +100,12 @@ async def run_speedtest(request: AsyncClient, message: Message):
         return lang('speedtest_ConnectFailure'), None
 
     des = (
-        f"`Provider` - `{result['isp']}`\n"
-        f"`ServerID` - `{result['server']['id']}`\n"
-        f"`Sponsor ` - `{result['server']['name']}`\n"
-        f"`Location` - `{result['server']['location']}`\n"
-        f"`Country ` - `{result['server']['country']}`\n"
-        f"`Download` - `{await unit_convert(result['download']['bandwidth'])}`\n"
-        f"`Upload  ` - `{await unit_convert(result['upload']['bandwidth'])}`\n"
-        f"`Latency ` - `{result['ping']['latency']} ms`"
+        f"[服务商] `{result['isp']}`\n"
+        f"[测速点] `{result['server']['name']} (ID: {result['server']['id']})`\n"
+        f"[位置] `{result['server']['location']}, {result['server']['country']}`\n"
+        f"[下载] `{await unit_convert(result['download']['bandwidth'])}`\n"
+        f"[上传] `{await unit_convert(result['upload']['bandwidth'])}`\n"
+        f"[时延] `{result['ping']['latency']} ms`"
     )
 
     if result["result"]["url"]:
