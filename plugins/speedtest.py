@@ -145,7 +145,7 @@ async def get_all_ids(request):
         else ("No Server Available", None)
     )
 
-@listener(command="sgo",
+@listener(command="s",
           need_admin=True,
           description=lang('speedtest_des'),
           parameters="(list/server id/-default-set)")
