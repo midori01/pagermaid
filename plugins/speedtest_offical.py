@@ -81,6 +81,14 @@ async def start_speedtest(command):
         stderr = str(stderr.decode('gbk').strip())
     return stdout, stderr, proc.returncode
 
+async def get_as_info(request: AsyncClient, ip: str):
+    try:
+        response = await request.get(f"http://ip-api.com/json/{ip}?fields=as")
+        data = response.json()
+        return data.get('as', 'Unknown ASN')
+    except Exception:
+        return 'Unknown ASN'
+
 async def run_speedtest(request: AsyncClient, message: Message):
     if not exists(speedtest_path):
         await download_cli(request)
@@ -100,7 +108,7 @@ async def run_speedtest(request: AsyncClient, message: Message):
         return lang('speedtest_ConnectFailure'), None
 
     des = (
-        f"[服务商] `{result['isp']}`\n"
+        f"[服务商] `{await get_as_info(request, result['interface']['externalIp'])}`\n"
         f"[测速点] `{result['server']['name']}`\n"
         f"[位置] `{result['server']['location']}`, `{result['server']['country']}`\n"
         f"[速度] ↓`{await unit_convert(result['download']['bandwidth'])}` ↑`{await unit_convert(result['upload']['bandwidth'])}`\n"
