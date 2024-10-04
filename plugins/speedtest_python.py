@@ -21,7 +21,6 @@ from speedtest import (
     SpeedtestHTTPError,
 )
 
-
 def unit_convert(byte):
     """Converts byte into readable formats."""
     power = 1000
@@ -32,6 +31,15 @@ def unit_convert(byte):
         zero += 1
     return f"{round(byte, 2)} {units[zero]}"
 
+async def get_as_info(request: AsyncClient, ip: str):
+    """Fetches AS information based on IP address."""
+    try:
+        response = await request.get(f"http://ip-api.com/json/{ip}?fields=as")
+        data = response.json()
+        as_info = data.get('as', 'Unknown AS')
+        return as_info.split()[0] if as_info != 'Unknown AS' else as_info
+    except Exception:
+        return 'Unknown AS'
 
 async def run_speedtest(request: AsyncClient, message: Message):
     test = Speedtest()
@@ -45,16 +53,20 @@ async def run_speedtest(request: AsyncClient, message: Message):
     test.get_best_server(servers=test.servers)
     test.download()
     test.upload()
+    
     with contextlib.suppress(ShareResultsConnectFailure):
         test.results.share()
+    
     result = test.results.dict()
+
     des = (
-        f"[服务商] `{result['client']['isp']}`\n"
+        f"[服务商] `{result['client']['isp']} {(await get_as_info(request, result['client']['ip']))}`\n"
         f"[测速点] `{result['server']['sponsor']}` - `{result['server']['name']}`\n"
         f"[速度] ↓`{unit_convert(result['download'])}` ↑`{unit_convert(result['upload'])}`\n"
         f"[时延] `{result['ping']} ms`\n"
         f"[时间] `{result['timestamp'].replace('T', ' ').split('.')[0].replace('Z', '')}`"
     )
+
     if result["share"]:
         data = await request.get(
             result["share"].replace("http:", "https:"), follow_redirects=True
@@ -65,8 +77,8 @@ async def run_speedtest(request: AsyncClient, message: Message):
             img = Image.open("speedtest.png")
             c = img.crop((17, 11, 727, 389))
             c.save("speedtest.png")
+    
     return des, "speedtest.png" if exists("speedtest.png") else None
-
 
 async def get_all_ids():
     test = Speedtest()
@@ -84,7 +96,6 @@ async def get_all_ids():
         else ("附近没有测速点", None)
     )
 
-
 @listener(
     command="s",
     description=lang("speedtest_des"),
@@ -96,6 +107,7 @@ async def speedtest(client: Client, message: Message, request: AsyncClient):
         msg = message
     else:
         msg: Message = await message.edit(lang("speedtest_processing"))
+    
     try:
         if message.arguments == "测速点列表":
             des, photo = await get_all_ids()
@@ -109,8 +121,10 @@ async def speedtest(client: Client, message: Message, request: AsyncClient):
         return await msg.edit(lang("speedtest_ServerFailure"))
     except (ShareResultsSubmitFailure, RuntimeError, ReadTimeout):
         return await msg.edit(lang("speedtest_ConnectFailure"))
+    
     if not photo:
         return await msg.edit(des)
+    
     try:
         await client.send_photo(
             message.chat.id,
@@ -120,5 +134,6 @@ async def speedtest(client: Client, message: Message, request: AsyncClient):
         )
     except Exception:
         return await msg.edit(des)
+    
     await msg.safe_delete()
     safe_remove(photo)
