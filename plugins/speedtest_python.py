@@ -97,7 +97,7 @@ async def get_all_ids():
     )
 
 @listener(
-    command="s",
+    command="spy",
     description=lang("speedtest_des"),
     parameters="(Server ID/测速点列表)",
 )
