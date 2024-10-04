@@ -155,10 +155,12 @@ async def speedtest(client: Client, message: Message, request: AsyncClient):
     if message.arguments.startswith("-default-set"):
         args = message.arguments.split()
         if len(args) == 2 and str.isdigit(args[1]):
-            sqlite.set('speedtest_default', args[1])
+            sqlite['speedtest_default'] = args[1]
+            sqlite.commit()
             await message.edit(f"Default speedtest server set to {args[1]}")
         else:
-            sqlite.delete('speedtest_default')
+            sqlite.pop('speedtest_default', None)
+            sqlite.commit()
             await message.edit("Default speedtest server cleared")
         return
 
