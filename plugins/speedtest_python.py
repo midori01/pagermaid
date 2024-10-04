@@ -61,7 +61,7 @@ async def run_speedtest(request: AsyncClient, message: Message):
 
     des = (
         f"[服务商] `{result['client']['isp']} {(await get_as_info(request, result['client']['ip']))}`\n"
-        f"[测速点] `{result['server']['sponsor']}` - `{result['server']['name']}`\n"
+        f"[测速点] `{result['server']['id']}` - `{result['server']['sponsor']}` - `{result['server']['name']}`\n"
         f"[速度] ↓`{unit_convert(result['download'])}` ↑`{unit_convert(result['upload'])}`\n"
         f"[时延] `{result['ping']} ms`\n"
         f"[时间] `{result['timestamp'].replace('T', ' ').split('.')[0].replace('Z', '')}`"
