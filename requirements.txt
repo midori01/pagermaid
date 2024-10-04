@@ -18,3 +18,4 @@ python-jose
 uvicorn
 pydantic<2.0.0
 starlette
+speedtest-cli
