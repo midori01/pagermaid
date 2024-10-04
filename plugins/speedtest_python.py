@@ -50,8 +50,7 @@ async def run_speedtest(request: AsyncClient, message: Message):
     result = test.results.dict()
     des = (
         f"[服务商] `{result['client']['isp']}`\n"
-        f"[测速点] `{result['server']['sponsor']}`\n"
-        f"[位置] `{result['server']['name']}`, `{result['server']['country']}`\n"
+        f"[测速点] `{result['server']['sponsor']}` - `{result['server']['name']}`\n"
         f"[速度] ↓`{unit_convert(result['download'])}` ↑`{unit_convert(result['upload'])}`\n"
         f"[时延] `{result['ping']} ms`\n"
         f"[时间] `{result['timestamp'].replace('T', ' ').split('.')[0].replace('Z', '')}`"
