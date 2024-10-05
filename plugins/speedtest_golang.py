@@ -139,4 +139,5 @@ async def speedtest(client: Client, message: Message, request: AsyncClient):
         await msg.edit(des)
     finally:
         await msg.safe_delete()
-        safe_remove(photo)
+        if photo:
+            safe_remove(photo)
