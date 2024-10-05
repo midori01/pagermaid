@@ -23,7 +23,7 @@ async def download_cli(request):
     filename = f"ookla-speedtest-{speedtest_version}-linux-{machine}.tgz"
     path = Path("/var/lib/pagermaid/plugins/")
     path.mkdir(parents=True, exist_ok=True)
-    
+
     data = await request.get(f"https://install.speedtest.net/app/cli/{filename}")
     file_path = path / filename
     file_path.write_bytes(data.content)
@@ -36,7 +36,7 @@ async def download_cli(request):
             safe_remove(path / extra_file)
     except Exception:
         return "Error", None
-    
+
     proc = await create_subprocess_shell(f"chmod +x {speedtest_path}", stdout=PIPE, stderr=PIPE, stdin=PIPE)
     await proc.communicate()
     return path if (path / "speedtest").exists() else None
@@ -120,23 +120,23 @@ async def get_all_ids(request):
 
 @listener(command="sgo", need_admin=True, description=lang('speedtest_des'), parameters="(list/server id)")
 async def speedtest(client: Client, message: Message, request: AsyncClient):
-    if message.arguments == "list":
-        des, photo = await get_all_ids(request)
-    elif not message.arguments or message.arguments.isnumeric():
-        msg = await message.edit(lang('speedtest_processing'))
-        des, photo = await run_speedtest(request, message)
-    else:
-        return await message.edit(lang('arg_error'))
-
-    if not photo:
-        return await msg.edit(des)
-    
+    msg = await message.edit(lang('speedtest_processing'))
     try:
+        if message.arguments == "list":
+            des, photo = await get_all_ids(request)
+        elif not message.arguments or message.arguments.isnumeric():
+            des, photo = await run_speedtest(request, message)
+        else:
+            return await msg.edit(lang('arg_error'))
+
+        if not photo:
+            return await msg.edit(des)
+
         await (message.reply_to_message.reply_photo if message.reply_to_message else message.reply_photo)(
             photo, caption=des, quote=False, reply_to_message_id=message.reply_to_top_message_id
         )
-        await msg.safe_delete()
     except Exception:
         await msg.edit(des)
     finally:
+        await msg.safe_delete()
         safe_remove(photo)
