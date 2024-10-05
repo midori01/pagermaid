@@ -1,89 +1,97 @@
 import contextlib
 import platform
 import tarfile
+import asyncio
 
-from asyncio import create_subprocess_shell
-from asyncio.subprocess import PIPE
 from json import loads
-
 from PIL import Image
-from pathlib import Path
-from httpx import ReadTimeout
-
+from os import makedirs
+from os.path import exists
+from httpx import AsyncClient
 from pagermaid.listener import listener
 from pagermaid.single_utils import safe_remove
-from pagermaid.enums import Client, Message, AsyncClient
 from pagermaid.utils import lang
+
 
 speedtest_path = "/var/lib/pagermaid/plugins/speedtest"
 
 async def download_cli(request):
     speedtest_version = "1.2.0"
-    machine = "x86_64" if platform.machine().lower() == "amd64" else platform.machine().lower()
+    machine = platform.machine()
+    if machine == "AMD64":
+        machine = "x86_64"
     filename = f"ookla-speedtest-{speedtest_version}-linux-{machine}.tgz"
-    path = Path("/var/lib/pagermaid/plugins/")
-    path.mkdir(parents=True, exist_ok=True)
+    speedtest_url = f"https://install.speedtest.net/app/cli/{filename}"
+    path = "/var/lib/pagermaid/plugins/"
 
-    data = await request.get(f"https://install.speedtest.net/app/cli/{filename}")
-    file_path = path / filename
-    file_path.write_bytes(data.content)
-
+    makedirs(path, exist_ok=True)
+    
     try:
-        with tarfile.open(file_path, "r:gz") as tar:
+        data = await request.get(speedtest_url)
+        with open(path + filename, mode="wb") as f:
+            f.write(data.content)
+
+        with tarfile.open(path + filename, "r:gz") as tar:
             tar.extractall(path)
-        safe_remove(file_path)
-        for extra_file in ["speedtest.5", "speedtest.md"]:
-            safe_remove(path / extra_file)
-    except Exception:
-        return "Error", None
+        
+        # Clean up
+        safe_remove(path + filename)
+        for file in ['speedtest.5', 'speedtest.md']:
+            safe_remove(path + file)
 
-    proc = await create_subprocess_shell(f"chmod +x {speedtest_path}", stdout=PIPE, stderr=PIPE, stdin=PIPE)
-    await proc.communicate()
-    return path if (path / "speedtest").exists() else None
+    except Exception as e:
+        return "Error downloading or extracting the CLI", str(e)
 
-async def decode_output(output):
-    return output.decode(errors='ignore').strip()
+    # Set executable permission
+    await run_command(f"chmod +x {speedtest_path}")
 
-async def start_speedtest(command):
-    proc = await create_subprocess_shell(command, shell=True, stdout=PIPE, stderr=PIPE, stdin=PIPE)
+async def run_command(command):
+    proc = await asyncio.create_subprocess_shell(command, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE)
     stdout, stderr = await proc.communicate()
-    return await decode_output(stdout), await decode_output(stderr), proc.returncode
+    return stdout.decode().strip(), stderr.decode().strip(), proc.returncode
 
 async def unit_convert(byte):
-    units = ['bps', 'Kbps', 'Mbps', 'Gbps', 'Tbps']
-    byte *= 8
+    """ Converts byte into readable formats. """
     power = 1000
+    units = ['Kbps', 'Mbps', 'Gbps', 'Tbps']
+    byte *= 8  # Convert to bits
     zero = 0
-    while byte >= power and zero < len(units) - 1:
+    
+    while byte > power and zero < len(units) - 1:
         byte /= power
         zero += 1
+        
     return f"{round(byte, 2)} {units[zero]}"
 
 async def get_as_info(request: AsyncClient, ip: str):
     try:
-        response = await request.get(f"http://ip-api.com/json/{ip}?fields=as", timeout=10)
+        response = await request.get(f"http://ip-api.com/json/{ip}?fields=as")
         as_info = response.json().get('as', 'Unknown AS')
         return as_info.split()[0] if as_info != 'Unknown AS' else as_info
-    except ReadTimeout:
-        return 'Timeout'
     except Exception:
         return 'Unknown AS'
 
-async def run_speedtest(request: AsyncClient, message: Message):
-    if not Path(speedtest_path).exists():
+async def run_speedtest(request: AsyncClient, message: str):
+    if not exists(speedtest_path):
         await download_cli(request)
+
     command = (
-        f"sudo {speedtest_path} --accept-license --accept-gdpr -s {message.arguments} -f json"
-    ) if message.arguments.isnumeric() else (
+        f"sudo {speedtest_path} --accept-license --accept-gdpr -s {message} -f json"
+        if message.isdigit() else 
         f"sudo {speedtest_path} --accept-license --accept-gdpr -f json"
     )
-    outs, errs, code = await start_speedtest(command)
+
+    outs, errs, code = await run_command(command)
     if code == 0:
         result = loads(outs)
-    elif loads(errs)['message'] == "Configuration - No servers defined (NoServersException)":
+    elif "No servers defined" in errs:
         return "Unable to connect to the specified server", None
     else:
         return lang('speedtest_ConnectFailure'), None
+
+    return await format_speedtest_result(result)
+
+async def format_speedtest_result(result):
     des = (
         f"[服务商] `{result['isp']} {await get_as_info(request, result['interface']['externalIp'])}`\n"
         f"[测速点] `{result['server']['id']}` - `{result['server']['name']}` - `{result['server']['location']}`\n"
@@ -91,53 +99,60 @@ async def run_speedtest(request: AsyncClient, message: Message):
         f"[时延] ⇔`{result['ping']['latency']} ms` ~`{result['ping']['jitter']} ms`\n"
         f"[时间] `{result['timestamp'].replace('T', ' ').split('.')[0].replace('Z', '')}`"
     )
-    if result["result"]["url"]:
-        data = await request.get(result["result"]["url"] + '.png')
-        path = "speedtest.png"
-        with open(path, mode="wb") as f:
-            f.write(data.content)
-        try:
-            img = Image.open(path)
-            img.crop((17, 11, 727, 389)).save(path)
-        except Exception:
-            pass
-    return des, path if Path(path).exists() else None
 
-async def get_all_ids(request):
-    if not Path(speedtest_path).exists():
+    if result["result"]["url"]:
+        return await fetch_and_crop_image(result["result"]["url"]), des
+    return None, des
+
+async def fetch_and_crop_image(url):
+    try:
+        data = await request.get(url + '.png')
+        with open("speedtest.png", mode="wb") as f:
+            f.write(data.content)
+
+        with contextlib.suppress(Exception):
+            img = Image.open("speedtest.png")
+            c = img.crop((17, 11, 727, 389))
+            c.save("speedtest.png")
+
+        return "speedtest.png" if exists("speedtest.png") else None
+    except Exception:
+        return None
+
+async def get_all_ids(request: AsyncClient):
+    if not exists(speedtest_path):
         await download_cli(request)
-    outs, _, code = await start_speedtest(f"sudo {speedtest_path} -f json -L")
-    if code != 0:
-        return "No Server Available", None
-    result = loads(outs)
-    return (
-        "Server List:\n" + "\n".join(
-            f"`{i['id']}` - `{i['name']}` - `{i['location']}`"
-            for i in result['servers']
-        ),
-        None
-    )
+        
+    outs, errs, code = await run_command(f"sudo {speedtest_path} -f json -L")
+    if code == 0:
+        result = loads(outs)
+        return (
+            "Server List:\n" + 
+            "\n".join(f"`{i['id']}` - `{i['name']}` - `{i['location']}`" for i in result['servers']),
+            None
+        )
+    return "No Server Available", None
 
 @listener(command="sgo", need_admin=True, description=lang('speedtest_des'), parameters="(list/server id)")
 async def speedtest(client: Client, message: Message, request: AsyncClient):
-    msg = await message.edit(lang('speedtest_processing'))
+    """ Tests internet speed using speedtest. """
+    msg = message
+    if message.arguments == "list":
+        des, photo = await get_all_ids(request)
+    elif len(message.arguments) == 0 or message.arguments.isdigit():
+        msg: Message = await message.edit(lang('speedtest_processing'))
+        des, photo = await run_speedtest(request, message.arguments)
+    else:
+        return await msg.edit(lang('arg_error'))
+
+    if not photo:
+        return await msg.edit(des)
+
     try:
-        if message.arguments == "list":
-            des, photo = await get_all_ids(request)
-        elif not message.arguments or message.arguments.isnumeric():
-            des, photo = await run_speedtest(request, message)
-        else:
-            return await msg.edit(lang('arg_error'))
-
-        if not photo:
-            return await msg.edit(des)
-
-        await (message.reply_to_message.reply_photo if message.reply_to_message else message.reply_photo)(
-            photo, caption=des, quote=False, reply_to_message_id=message.reply_to_top_message_id
-        )
+        await message.reply_to_message.reply_photo(photo, caption=des) if message.reply_to_message else await message.reply_photo(photo, caption=des, quote=False)
+        await message.safe_delete()
     except Exception:
-        await msg.edit(des)
-    finally:
-        await msg.safe_delete()
-        if photo:
-            safe_remove(photo)
+        return await msg.edit(des)
+
+    await msg.safe_delete()
+    safe_remove(photo)
