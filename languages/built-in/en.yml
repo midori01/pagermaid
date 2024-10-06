@@ -405,8 +405,8 @@ stats_loading: Loading...
 stats_hint: Conversations Status
 stats_dialogs: Total
 stats_private: PM
-stats_group: Group
-stats_supergroup: SuperGroup
+stats_group: Public Group
+stats_supergroup: Total Group
 stats_channel: Channel
 stats_bot: Bot
 ## speedtest
