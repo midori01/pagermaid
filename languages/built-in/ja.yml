@@ -405,10 +405,10 @@ stats_loading: ロードリング...
 stats_hint: Conversations Status
 stats_dialogs: Total
 stats_private: PM
-stats_group: Group
-stats_supergroup: SuperGroup
+stats_group: Public Group
+stats_supergroup: Total Group
 stats_channel: Channel
-stats_bot: ボット
+stats_bot: Bot
 ## speedtest
 speedtest_des: Execute the speedtest script and send the result。
 speedtest_processing: Execute test scripts ...
