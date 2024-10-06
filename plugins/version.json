@@ -4,7 +4,6 @@
     "ip": 100.0,
     "eat": 100.0,
     "service": 100.0,
-    "trace": 100.0,
-    "speedtest_python": 100.0,
-    "speedtest_golang": 100.0
+    "trace": 100.0
+    "speedtest": 100.0
 }
