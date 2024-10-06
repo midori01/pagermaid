@@ -405,8 +405,8 @@ stats_loading: 加载中 . . .
 stats_hint: 对话统计
 stats_dialogs: 对话总数
 stats_private: 您拥有的私聊数为
-stats_group: 您拥有的普通群组数为
-stats_supergroup: 您拥有的超级群组数为
+stats_group: 您拥有的公开群组数为
+stats_supergroup: 您拥有的总群组数为
 stats_channel: 您拥有的频道数为
 stats_bot: 您激活的机器人数为
 ## speedtest
