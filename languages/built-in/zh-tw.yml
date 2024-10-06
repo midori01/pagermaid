@@ -405,8 +405,8 @@ stats_loading: 加載中 . . .
 stats_hint: 對話統計
 stats_dialogs: 對話總數
 stats_private: 您擁有的私聊數為
-stats_group: 您擁有的普通群組數為
-stats_supergroup: 您擁有的超級群組數為
+stats_group: 您擁有的公開群組數為
+stats_supergroup: 您擁有的總群組數為
 stats_channel: 您擁有的頻道數為
 stats_bot: 您激活的機器人數為
 ## speedtest
