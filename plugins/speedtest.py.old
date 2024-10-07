@@ -29,7 +29,7 @@ def unit_convert(byte):
     while byte > power:
         byte /= power
         zero += 1
-    return f"{round(byte, 2)} {units[zero]}"
+    return f"{round(byte, 2)}{units[zero]}"
 
 async def get_as_info(request: AsyncClient, ip: str):
     """Fetches AS information based on IP address."""
@@ -62,8 +62,8 @@ async def run_speedtest(request: AsyncClient, message: Message):
     des = (
         f"[服务商] `{result['client']['isp']} {(await get_as_info(request, result['client']['ip']))}`\n"
         f"[测速点] `{result['server']['id']}` - `{result['server']['sponsor']}` - `{result['server']['name']}`\n"
-        f"[速度] ↓`{unit_convert(result['download'])}` ↑`{unit_convert(result['upload'])}`\n"
-        f"[时延] `{result['ping']} ms`\n"
+        f"[速度] ↓`{unit_convert(result['download'])}` | ↑`{unit_convert(result['upload'])}`\n"
+        f"[时延] `{result['ping']}ms`\n"
         f"[时间] `{result['timestamp'].replace('T', ' ').split('.')[0].replace('Z', '')}`"
     )
 
