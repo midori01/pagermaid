@@ -106,7 +106,6 @@ async def run_speedtest(request: AsyncClient, message: Message):
         return lang('speedtest_ConnectFailure'), None
 
     des = (
-        f"**Speedtest**\n"
         f"•`  ISP`: `{result['isp']} {await get_as_info(request, result['interface']['externalIp'])}`\n"
         f"•` Node`: `{result['server']['id']}` - `{result['server']['name']}` - `{result['server']['location']}`\n"
         f"•`Speed`: ↓`{await unit_convert(result['download']['bandwidth'])}` / ↑`{await unit_convert(result['upload']['bandwidth'])}`\n"
