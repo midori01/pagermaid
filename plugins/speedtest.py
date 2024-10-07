@@ -107,11 +107,11 @@ async def run_speedtest(request: AsyncClient, message: Message):
 
     des = (
         f"**Speedtest by Ookla**\n"
-        f"`    ISP`: `{result['isp']} {await get_as_info(request, result['interface']['externalIp'])}`\n"
-        f"` Server`: `{result['server']['id']}` - `{result['server']['name']}` - `{result['server']['location']}`\n"
-        f"`  Speed`: ↓`{await unit_convert(result['download']['bandwidth'])}` | ↑`{await unit_convert(result['upload']['bandwidth'])}`\n"
-        f"`Latency`: ⇔`{result['ping']['latency']}ms` | ~`{result['ping']['jitter']}ms`\n"
-        f"`   Time`: `{result['timestamp'].replace('T', ' ').split('.')[0].replace('Z', '')}`"
+        f"回線業者 `{result['isp']} {await get_as_info(request, result['interface']['externalIp'])}`\n"
+        f"サーバー `{result['server']['id']}` - `{result['server']['name']}` - `{result['server']['location']}`\n"
+        f"通信速度 ↓`{await unit_convert(result['download']['bandwidth'])}` | ↑`{await unit_convert(result['upload']['bandwidth'])}`\n"
+        f"遅延時間 ⇔`{result['ping']['latency']}ms` / ~`{result['ping']['jitter']}ms`\n"
+        f"測定時間 `{result['timestamp'].replace('T', ' ').split('.')[0].replace('Z', '')}`"
     )
 
     if result["result"]["url"]:
