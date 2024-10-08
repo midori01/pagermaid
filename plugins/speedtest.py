@@ -161,7 +161,7 @@ async def get_all_ids(request):
 @listener(command="s",
           need_admin=True,
           description=lang('speedtest_des'),
-          parameters="(list/server id/set/remove)")
+          parameters="(list/id/set/remove)")
 async def speedtest(client: Client, message: Message, request: AsyncClient):
     msg = message
     if message.arguments == "list":
