@@ -8,8 +8,7 @@ from asyncio.subprocess import PIPE
 from json import loads
 from PIL import Image
 from os import makedirs
-from os.path import exists, join
-from httpx import ReadTimeout
+from os.path import exists
 
 from pagermaid.listener import listener
 from pagermaid.single_utils import safe_remove
@@ -19,16 +18,15 @@ from pagermaid.utils import lang
 speedtest_path = "/var/lib/pagermaid/plugins/speedtest"
 default_server = "/var/lib/pagermaid/plugins/speedtest.json"
 
-async def get_default_server():
+def get_default_server():
     if exists(default_server):
-        async with aiofiles.open(default_server, "r") as f:
-            data = await f.read()
-            return json.loads(data).get("default_server_id", None)
+        with open(default_server, "r") as f:
+            return json.load(f).get("default_server_id", None)
     return None
 
-async def save_default_server(server_id=None):
-    async with aiofiles.open(default_server, "w") as f:
-        await f.write(json.dumps({"default_server_id": server_id}))
+def save_default_server(server_id=None):
+    with open(default_server, "w") as f:
+        json.dump({"default_server_id": server_id}, f)
 
 def remove_default_server():
     if exists(default_server):
@@ -105,7 +103,7 @@ async def run_speedtest(request: AsyncClient, message: Message):
     if not exists(speedtest_path):
         await download_cli(request)
 
-    server_id = message.arguments if message.arguments.isdigit() else await get_default_server()
+    server_id = message.arguments if message.arguments.isdigit() else get_default_server()
     command = f"sudo {speedtest_path} --accept-license --accept-gdpr -f json" + (f" -s {server_id}" if server_id else "")
     outs, errs, code = await start_speedtest(command)
 
@@ -154,7 +152,7 @@ async def speedtest(client: Client, message: Message, request: AsyncClient):
         des, photo = await get_all_ids(request)
     elif message.arguments.startswith("set"):
         server_id = message.arguments.split()[1]
-        await save_default_server(server_id)
+        save_default_server(server_id)
         return await msg.edit(f"> **SPEEDTEST by OOKLA**\n`Default server has been set to {server_id}.`")
     elif message.arguments == "remove":
         remove_default_server()
