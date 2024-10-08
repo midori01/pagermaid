@@ -169,10 +169,10 @@ async def speedtest(client: Client, message: Message, request: AsyncClient):
     elif message.arguments.startswith("set"):
         server_id = message.arguments.split()[1]
         save_default_server(server_id)
-        return await msg.edit(f">**Speedtest® CLI**\n`Default server has been set to {server_id}.`")
+        return await msg.edit(f">**Speedtest® CLI**\n\n```Default server has been set to {server_id}.```")
     elif message.arguments == "remove":
         remove_default_server()
-        return await msg.edit(f">**Speedtest® CLI**\n`Default server has been removed.`")
+        return await msg.edit(f">**Speedtest® CLI**\n\n```Default server has been removed.```")
     elif len(message.arguments) == 0 or str.isdigit(message.arguments):
         msg: Message = await message.edit(lang('speedtest_processing'))
         des, photo = await run_speedtest(request, message)
