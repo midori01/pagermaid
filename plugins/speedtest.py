@@ -1,14 +1,14 @@
 import contextlib
 import platform
 import tarfile
+import json
 
 from asyncio import create_subprocess_shell
 from asyncio.subprocess import PIPE
 from json import loads
-
 from PIL import Image
 from os import makedirs
-from os.path import exists
+from os.path import exists, join
 from httpx import ReadTimeout
 
 from pagermaid.listener import listener
@@ -17,6 +17,21 @@ from pagermaid.enums import Client, Message, AsyncClient
 from pagermaid.utils import lang
 
 speedtest_path = "/var/lib/pagermaid/plugins/speedtest"
+default_server = "/var/lib/pagermaid/plugins/speedtest.json"
+
+def get_default_server():
+    if exists(default_server):
+        with open(default_server, "r") as f:
+            return json.load(f).get("default_server_id", None)
+    return None
+
+def save_default_server(server_id=None):
+    with open(default_server, "w") as f:
+        json.dump({"default_server_id": server_id}, f)
+
+def remove_default_server():
+    if exists(default_server):
+        safe_remove(default_server)
 
 async def download_cli(request):
     speedtest_version = "1.2.0"
@@ -24,11 +39,10 @@ async def download_cli(request):
     if machine == "AMD64":
         machine = "x86_64"
     filename = f"ookla-speedtest-{speedtest_version}-linux-{machine}.tgz"
-    speedtest_url = f"https://install.speedtest.net/app/cli/{filename}"
     path = "/var/lib/pagermaid/plugins/"
     if not exists(path):
         makedirs(path)
-    data = await request.get(speedtest_url)
+    data = await request.get(f"https://install.speedtest.net/app/cli/{filename}")
     with open(path + filename, mode="wb") as f:
         f.write(data.content)
     try:
@@ -90,10 +104,12 @@ async def get_as_info(request: AsyncClient, ip: str):
 async def run_speedtest(request: AsyncClient, message: Message):
     if not exists(speedtest_path):
         await download_cli(request)
+    
+    server_id = message.arguments if str.isdigit(message.arguments) else get_default_server()
 
     command = (
-        f"sudo {speedtest_path} --accept-license --accept-gdpr -s {message.arguments} -f json"
-    ) if str.isdigit(message.arguments) else (
+        f"sudo {speedtest_path} --accept-license --accept-gdpr -s {server_id} -f json"
+    ) if server_id else (
         f"sudo {speedtest_path} --accept-license --accept-gdpr -f json"
     )
 
@@ -145,11 +161,18 @@ async def get_all_ids(request):
 @listener(command="s",
           need_admin=True,
           description=lang('speedtest_des'),
-          parameters="(list/server id)")
+          parameters="(list/server id/set/remove)")
 async def speedtest(client: Client, message: Message, request: AsyncClient):
     msg = message
     if message.arguments == "list":
         des, photo = await get_all_ids(request)
+    elif message.arguments.startswith("set"):
+        server_id = message.arguments.split()[1]
+        save_default_server(server_id)
+        return await msg.edit(f"Default server set to {server_id}.")
+    elif message.arguments == "remove":
+        remove_default_server()
+        return await msg.edit("Default server has been removed.")
     elif len(message.arguments) == 0 or str.isdigit(message.arguments):
         msg: Message = await message.edit(lang('speedtest_processing'))
         des, photo = await run_speedtest(request, message)
