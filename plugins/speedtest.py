@@ -15,74 +15,73 @@ from pagermaid.single_utils import safe_remove
 from pagermaid.enums import Client, Message, AsyncClient
 from pagermaid.utils import lang
 
-SPEEDTEST_PATH = "/var/lib/pagermaid/plugins/speedtest"
-SPEEDTEST_JSON = "/var/lib/pagermaid/plugins/speedtest.json"
-SPEEDTEST_VERSION = "1.2.0"
+speedtest_path = "/var/lib/pagermaid/plugins/speedtest"
+speedtest_json = "/var/lib/pagermaid/plugins/speedtest.json"
 
-def get_default_server() -> str | None:
-    if exists(SPEEDTEST_JSON):
-        with open(SPEEDTEST_JSON, "r") as f:
+def get_default_server():
+    if exists(speedtest_json):
+        with open(speedtest_json, "r") as f:
             return json.load(f).get("default_server_id", None)
     return None
 
-def save_default_server(server_id: str | None) -> None:
-    with open(SPEEDTEST_JSON, "w") as f:
+def save_default_server(server_id=None):
+    with open(speedtest_json, "w") as f:
         json.dump({"default_server_id": server_id}, f)
 
-def remove_default_server() -> None:
-    if exists(SPEEDTEST_JSON):
-        safe_remove(SPEEDTEST_JSON)
+def remove_default_server():
+    if exists(speedtest_json):
+        safe_remove(speedtest_json)
 
-async def ensure_speedtest_installed(request) -> str | None:
-    if exists(SPEEDTEST_PATH):
-        return SPEEDTEST_PATH
-
-    machine = "x86_64" if platform.machine() == "AMD64" else platform.machine()
-    filename = f"ookla-speedtest-{SPEEDTEST_VERSION}-linux-{machine}.tgz"
+async def download_cli(request):
+    speedtest_version = "1.2.0"
+    machine = platform.machine()
+    machine = "x86_64" if machine == "AMD64" else machine
+    filename = f"ookla-speedtest-{speedtest_version}-linux-{machine}.tgz"
     path = "/var/lib/pagermaid/plugins/"
-    
     if not exists(path):
         makedirs(path)
-        
     data = await request.get(f"https://install.speedtest.net/app/cli/{filename}")
     with open(path + filename, mode="wb") as f:
         f.write(data.content)
 
     try:
-        with tarfile.open(path + filename, "r:gz") as tar:
-            tar.extractall(path)
+        tar = tarfile.open(path + filename, "r:gz")
+        tar.extractall(path)
+        tar.close()
         safe_remove(path + filename)
         safe_remove(f"{path}speedtest.5")
         safe_remove(f"{path}speedtest.md")
     except tarfile.TarError as e:
-        return None
+        return "Error extracting tar file", None
 
-    proc = await create_subprocess_shell(f"chmod +x {SPEEDTEST_PATH}", stdout=PIPE, stderr=PIPE, stdin=PIPE)
+    proc = await create_subprocess_shell(
+        f"chmod +x {speedtest_path}", stdout=PIPE, stderr=PIPE, stdin=PIPE
+    )
     await proc.communicate()
-    return SPEEDTEST_PATH if exists(SPEEDTEST_PATH) else None
+    return path if exists(f"{path}speedtest") else None
 
-def decode_output(output: bytes) -> str:
+def decode_output(output):
     try:
         return output.decode().strip()
     except UnicodeDecodeError:
         return output.decode("gbk").strip()
 
-async def start_speedtest(command: str) -> tuple[str, str, int]:
+async def start_speedtest(command):
     proc = await create_subprocess_shell(command, stdout=PIPE, stderr=PIPE, stdin=PIPE)
     stdout, stderr = await proc.communicate()
     return decode_output(stdout), decode_output(stderr), proc.returncode
 
-async def unit_convert(byte: int) -> str:
+async def unit_convert(byte):
     power = 1000
+    zero = 0
     units = {0: '', 1: 'Kbps', 2: 'Mbps', 3: 'Gbps', 4: 'Tbps'}
     byte *= 8
-    zero = 0
     while byte > power:
         byte /= power
         zero += 1
     return f"{round(byte, 2)}{units[zero]}"
 
-async def get_as_info(request: AsyncClient, ip: str) -> str:
+async def get_as_info(request: AsyncClient, ip: str):
     try:
         response = await request.get(f"http://ip-api.com/json/{ip}?fields=as")
         as_info = response.json().get('as', 'Unknown AS')
@@ -90,35 +89,32 @@ async def get_as_info(request: AsyncClient, ip: str) -> str:
     except Exception:
         return 'Unknown AS'
 
-async def save_speedtest_image(request, url: str) -> str | None:
-    try:
-        data = await request.get(url + '.png')
-        with open("speedtest.png", mode="wb") as f:
-            f.write(data.content)
-        
+async def save_speedtest_image(request, url):
+    data = await request.get(url + '.png')
+    with open("speedtest.png", mode="wb") as f:
+        f.write(data.content)
+    with contextlib.suppress(Exception):
         img = Image.open("speedtest.png")
-        img.crop((17, 11, 727, 389)).save("speedtest.png")
-        return "speedtest.png" if exists("speedtest.png") else None
-    except Exception:
-        return None
+        c = img.crop((17, 11, 727, 389))
+        c.save("speedtest.png")
+    return "speedtest.png" if exists("speedtest.png") else None
 
-async def run_speedtest(request: AsyncClient, message: Message) -> tuple[str, str | None]:
-    if not exists(SPEEDTEST_PATH):
-        await ensure_speedtest_installed(request)
+async def run_speedtest(request: AsyncClient, message: Message):
+    if not exists(speedtest_path):
+        await download_cli(request)
 
     server_id = message.arguments if message.arguments.isdigit() else get_default_server()
-    command = f"sudo {SPEEDTEST_PATH} --accept-license --accept-gdpr -f json" + (f" -s {server_id}" if server_id else "")
+    command = f"sudo {speedtest_path} --accept-license --accept-gdpr -f json" + (f" -s {server_id}" if server_id else "")
     outs, errs, code = await start_speedtest(command)
 
     if code == 0:
         result = loads(outs)
+    elif loads(errs).get('message') == "Configuration - No servers defined (NoServersException)":
+        return "Unable to connect to the specified server", None
     else:
-        error_msg = loads(errs).get('message')
-        if error_msg == "Configuration - No servers defined (NoServersException)":
-            return "Unable to connect to the specified server", None
         return lang('speedtest_ConnectFailure'), None
 
-    description = (
+    des = (
         f"> **SPEEDTEST by OOKLA**\n"
         f"`  ISP``  ``{result['isp']} {await get_as_info(request, result['interface']['externalIp'])}`\n"
         f"` Node``  ``{result['server']['id']}` - `{result['server']['name']}` - `{result['server']['location']}`\n"
@@ -128,7 +124,7 @@ async def run_speedtest(request: AsyncClient, message: Message) -> tuple[str, st
     )
 
     photo = await save_speedtest_image(request, result["result"]["url"]) if result["result"]["url"] else None
-    return description, photo
+    return des, photo
 
 async def get_all_ids(request):
     if not exists(speedtest_path):
