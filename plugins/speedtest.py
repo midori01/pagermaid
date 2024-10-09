@@ -121,7 +121,7 @@ async def run_speedtest(request: AsyncClient, message: Message):
         f"`Node``  ``{result['server']['id']}` - `{result['server']['name']}` - `{result['server']['location']}`\n"
         f"`Ping``  `⇔`{result['ping']['latency']}ms`` `±`{result['ping']['jitter']}ms`\n"
         f"`Rate``  `↓`{await unit_convert(result['download']['bandwidth'])}`` `↑`{await unit_convert(result['upload']['bandwidth'])}`\n"
-        f"`Data``  `↡`{await unit_convert(result['download']['bytes'], is_bytes=True)}`` `↟`{await unit_convert(result['upload']['bytes'], is_bytes=True)}`\n"
+        f"`Data``  `↓`{await unit_convert(result['download']['bytes'], is_bytes=True)}`` `↑`{await unit_convert(result['upload']['bytes'], is_bytes=True)}`\n"
         f"`Time``  ``{result['timestamp'].replace('T', ' ').split('.')[0].replace('Z', '')}`"
     )
 
