@@ -134,7 +134,7 @@ async def get_all_ids(request):
 
     return (
         (
-            "> **SPEEDTEST by OOKLA**\n"
+            "> **SPEEDTEST by OOKLA**"
             + "\n".join(f"`{i['id']}` - `{i['name']}` - `{i['location']}`" for i in result['servers']),
             None
         )
@@ -159,11 +159,7 @@ async def speedtest(client: Client, message: Message, request: AsyncClient):
         return await msg.edit(f"> **SPEEDTEST by OOKLA**\n`Default server has been removed.`")
     elif message.arguments == "config":
         server_id = get_default_server() or "Auto"
-        return await msg.edit(
-            f"> **SPEEDTEST by OOKLA**\n"
-            f"` Default Server: {server_id}`\n"
-            f"` Speedtest-CLI: v{speedtest_version}`"
-        )
+        return await msg.edit(f"> **SPEEDTEST by OOKLA**\n`Default Server: {server_id}\nSpeedtest-CLI: v{speedtest_version}`")
     elif len(message.arguments) == 0 or message.arguments.isdigit():
         msg: Message = await message.edit(lang('speedtest_processing'))
         des, photo = await run_speedtest(request, message)
