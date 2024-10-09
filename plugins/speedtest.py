@@ -134,7 +134,7 @@ async def get_all_ids(request):
 
     return (
         (
-            "> **SPEEDTEST by OOKLA**"
+            "> **SPEEDTEST by OOKLA**\n"
             + "\n".join(f"`{i['id']}` - `{i['name']}` - `{i['location']}`" for i in result['servers']),
             None
         )
@@ -145,7 +145,7 @@ async def get_all_ids(request):
 @listener(command="s",
           need_admin=True,
           description=lang('speedtest_des'),
-          parameters="(list/id/set/remove/config)")
+          parameters="(list/id/set/rm/config)")
 async def speedtest(client: Client, message: Message, request: AsyncClient):
     msg = message
     if message.arguments == "list":
@@ -154,7 +154,7 @@ async def speedtest(client: Client, message: Message, request: AsyncClient):
         server_id = message.arguments.split()[1]
         save_default_server(server_id)
         return await msg.edit(f"> **SPEEDTEST by OOKLA**\n`Default server has been set to {server_id}.`")
-    elif message.arguments == "remove":
+    elif message.arguments == "rm":
         remove_default_server()
         return await msg.edit(f"> **SPEEDTEST by OOKLA**\n`Default server has been removed.`")
     elif message.arguments == "config":
