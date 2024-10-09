@@ -71,16 +71,17 @@ async def start_speedtest(command):
     stdout, stderr = await proc.communicate()
     return decode_output(stdout), decode_output(stderr), proc.returncode
 
-async def unit_convert(byte):
-    power = 1000
+async def unit_convert(byte, is_bytes=False):
+    power = 1000 if is_bytes else 1000
     zero = 0
-    units = {0: '', 1: 'Kbps', 2: 'Mbps', 3: 'Gbps', 4: 'Tbps'}
-    byte *= 8
+    units = {0: '', 1: 'KB', 2: 'MB', 3: 'GB', 4: 'TB'} if is_bytes else {0: '', 1: 'Kbps', 2: 'Mbps', 3: 'Gbps', 4: 'Tbps'}
+    if not is_bytes:
+        byte *= 8
     while byte > power:
         byte /= power
         zero += 1
     return f"{round(byte, 2)}{units[zero]}"
-
+    
 async def get_as_info(request: AsyncClient, ip: str):
     try:
         response = await request.get(f"http://ip-api.com/json/{ip}?fields=as")
@@ -116,11 +117,12 @@ async def run_speedtest(request: AsyncClient, message: Message):
 
     des = (
         f"> **SPEEDTEST by OOKLA**\n"
-        f"`  ISP``  ``{result['isp']} {await get_as_info(request, result['interface']['externalIp'])}`\n"
-        f"` Node``  ``{result['server']['id']}` - `{result['server']['name']}` - `{result['server']['location']}`\n"
-        f"`Speed``  `↓`{await unit_convert(result['download']['bandwidth'])}`` `↑`{await unit_convert(result['upload']['bandwidth'])}`\n"
-        f"` Ping``  `⇔`{result['ping']['latency']}ms`` `±`{result['ping']['jitter']}ms`\n"
-        f"` Time``  ``{result['timestamp'].replace('T', ' ').split('.')[0].replace('Z', '')}`"
+        f"` ISP``  ``{result['isp']} {await get_as_info(request, result['interface']['externalIp'])}`\n"
+        f"`Node``  ``{result['server']['id']}` - `{result['server']['name']}` - `{result['server']['location']}`\n"
+        f"`Ping``  `⇔`{result['ping']['latency']}ms`` `±`{result['ping']['jitter']}ms`\n"
+        f"`Rate``  `↓`{await unit_convert(result['download']['bandwidth'])}`` `↑`{await unit_convert(result['upload']['bandwidth'])}`\n"
+        f"`Data``  `↡`{await unit_convert(result['download']['bytes'], is_bytes=True)}`` `↟`{await unit_convert(result['upload']['bytes'], is_bytes=True)}`\n"
+        f"`Time``  ``{result['timestamp'].replace('T', ' ').split('.')[0].replace('Z', '')}`"
     )
 
     photo = await save_speedtest_image(request, result["result"]["url"]) if result["result"]["url"] else None
