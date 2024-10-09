@@ -17,6 +17,7 @@ from pagermaid.utils import lang
 
 speedtest_path = "/var/lib/pagermaid/plugins/speedtest"
 speedtest_json = "/var/lib/pagermaid/plugins/speedtest.json"
+speedtest_version = "1.2.0"
 
 def get_default_server():
     if exists(speedtest_json):
@@ -33,7 +34,6 @@ def remove_default_server():
         safe_remove(speedtest_json)
 
 async def download_cli(request):
-    speedtest_version = "1.2.0"
     machine = platform.machine()
     machine = "x86_64" if machine == "AMD64" else machine
     filename = f"ookla-speedtest-{speedtest_version}-linux-{machine}.tgz"
@@ -134,7 +134,7 @@ async def get_all_ids(request):
 
     return (
         (
-            "Server List:\n"
+            "> **SPEEDTEST by OOKLA**\n"
             + "\n".join(f"`{i['id']}` - `{i['name']}` - `{i['location']}`" for i in result['servers']),
             None
         )
@@ -145,7 +145,7 @@ async def get_all_ids(request):
 @listener(command="s",
           need_admin=True,
           description=lang('speedtest_des'),
-          parameters="(list/id/set/remove)")
+          parameters="(list/id/set/remove/config)")
 async def speedtest(client: Client, message: Message, request: AsyncClient):
     msg = message
     if message.arguments == "list":
@@ -157,6 +157,13 @@ async def speedtest(client: Client, message: Message, request: AsyncClient):
     elif message.arguments == "remove":
         remove_default_server()
         return await msg.edit(f"> **SPEEDTEST by OOKLA**\n`Default server has been removed.`")
+    elif message.arguments == "config":
+        server_id = get_default_server() or "Auto"
+        return await msg.edit(
+            f"> **SPEEDTEST by OOKLA**\n"
+            f"` Default Server: {server_id}`\n"
+            f"` Speedtest-CLI: v{speedtest_version}`"
+        )
     elif len(message.arguments) == 0 or message.arguments.isdigit():
         msg: Message = await message.edit(lang('speedtest_processing'))
         des, photo = await run_speedtest(request, message)
