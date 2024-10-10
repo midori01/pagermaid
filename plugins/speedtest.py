@@ -163,8 +163,8 @@ async def get_installed_cli_version():
     output = decode_output(stdout)
     if proc.returncode == 0:
         version_info = output.split()
-        if len(version_info) >= 3:
-            return f"{version_info[2]} {version_info[3].strip('()')}"
+        if len(version_info) >= 5:
+            return f"{version_info[2]} ({version_info[4]})"
     return "Unknown"
 
 @listener(command="s",
