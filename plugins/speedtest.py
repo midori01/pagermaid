@@ -158,10 +158,12 @@ async def get_all_ids(request):
 
 async def get_installed_cli_version():
     outs, _, code = await start_speedtest(f"{speedtest_path} --version")
-    if code == 0:
-        return ' '.join(outs.split()[3:5])
+    if code == 0 and outs:
+        version_info = outs.split()
+        if len(version_info) >= 3:
+            return f"{version_info[2]} {version_info[3].strip('()')}"
     return "Unknown"
-    
+
 @listener(command="s",
           need_admin=True,
           description=lang('speedtest_des'),
