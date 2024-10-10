@@ -14,8 +14,11 @@ from pagermaid.listener import listener
 from pagermaid.enums import Client, Message, AsyncClient
 from pagermaid.utils import lang
 
-from pagermaid.single_utils import safe_remove # PagerMaid-Pyro < 1.5.0
-# from pagermaid.utils import safe_remove # PagerMaid-Pyro ≥ 1.5.0
+""" PagerMaid-Pyro < 1.5.0 """
+from pagermaid.single_utils import safe_remove
+
+""" PagerMaid-Pyro ≥ 1.5.0 """
+# from pagermaid.utils import safe_remove
 
 speedtest_path = "/var/lib/pagermaid/plugins/speedtest"
 speedtest_json = "/var/lib/pagermaid/plugins/speedtest.json"
