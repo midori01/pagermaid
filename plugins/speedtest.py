@@ -156,19 +156,6 @@ async def get_all_ids(request):
         else ("No Server Available", None)
     )
 
-async def get_installed_cli_version():
-    command = f"{speedtest_path} --version"
-    proc = await create_subprocess_shell(command, stdout=PIPE, stderr=PIPE, stdin=PIPE)
-    stdout, stderr = await proc.communicate()
-    output = decode_output(stdout)
-    print(f"Output: {output}")
-    print(f"Return Code: {proc.returncode}")
-    if proc.returncode == 0:
-        if "Speedtest by Ookla" in output:
-            version_info = output.split()
-            return f"{version_info[2]} ({version_info[4]})"
-    return "Unknown"
-
 @listener(command="s",
           need_admin=True,
           description=lang('speedtest_des'),
@@ -186,7 +173,7 @@ async def speedtest(client: Client, message: Message, request: AsyncClient):
         return await msg.edit(f"> **SPEEDTEST by OOKLA**\n`Default server has been removed.`")
     elif message.arguments == "config":
         server_id = get_default_server() or "Auto"
-        return await msg.edit(f"> **SPEEDTEST by OOKLA**\n`Default Server: {server_id}\nSpeedtest® CLI: {await get_installed_cli_version()}`")
+        return await msg.edit(f"> **SPEEDTEST by OOKLA**\n`Default Server: {server_id}\nSpeedtest® CLI: {speedtest_version}`")
     elif message.arguments == "update":
         result = await update_cli(request)
         return await msg.edit(result)
