@@ -11,9 +11,11 @@ from os import makedirs
 from os.path import exists
 
 from pagermaid.listener import listener
-from pagermaid.single_utils import safe_remove
 from pagermaid.enums import Client, Message, AsyncClient
 from pagermaid.utils import lang
+
+from pagermaid.single_utils import safe_remove # PagerMaid-Pyro < 1.5.0
+# from pagermaid.utils import safe_remove # PagerMaid-Pyro ≥ 1.5.0
 
 speedtest_path = "/var/lib/pagermaid/plugins/speedtest"
 speedtest_json = "/var/lib/pagermaid/plugins/speedtest.json"
