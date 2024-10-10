@@ -129,7 +129,7 @@ async def run_speedtest(request: AsyncClient, message: Message):
     
     des = (
         f"> **SPEEDTEST by OOKLA**\n"
-        f"`{cc_flag}{cc_code}``  ``{result['isp']} {as_info}`\n"
+        f"`{cc_flag}{cc_code}``  ``{result['isp']}`` `[{as_info}](https://bgp.he.net/{as_info})\n"
         f"`Node``  ``{result['server']['id']}` - `{result['server']['name']}` - `{result['server']['location']}`\n"
         f"`Ping``  `⇔`{result['ping']['latency']}ms`` `±`{result['ping']['jitter']}ms`\n"
         f"`Rate``  `↓`{await unit_convert(result['download']['bandwidth'])}`` `↑`{await unit_convert(result['upload']['bandwidth'])}`\n"
