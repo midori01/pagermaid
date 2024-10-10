@@ -86,12 +86,12 @@ async def get_ip_api(request: AsyncClient, ip: str):
     try:
         response = await request.get(f"http://ip-api.com/json/{ip}?fields=as,countryCode")
         data = response.json()
-        as_info = data.get('as', 'Unknown AS').split()[0]
+        as_info = data.get('as', '').split()[0]
         cc_code = data.get('countryCode', '')
         cc_flag = ''.join([chr(127397 + ord(c)) for c in cc_code.upper()]) if cc_code else ''
         return as_info, cc_code, cc_flag
     except Exception:
-        return 'Unknown AS', '', ''
+        return '', '', ''
         
 async def save_speedtest_image(request, url):
     data = await request.get(url + '.png')
