@@ -126,17 +126,17 @@ async def run_speedtest(request: AsyncClient, message: Message):
         return lang('speedtest_ConnectFailure'), None
         
     as_info, cc_code, cc_flag = await get_ip_api(request, result['interface']['externalIp'])
-
+    
     des = (
         f"> **SPEEDTEST by OOKLA**\n"
-        f"`{cc_flag}{cc_code}``  ``{result['isp']} [{as_info}](https://bgp.he.net/AS{as_info})`\n"
+        f"`{cc_flag}{cc_code}``  ``{result['isp']} {as_info}`\n"
         f"`Node``  ``{result['server']['id']}` - `{result['server']['name']}` - `{result['server']['location']}`\n"
         f"`Ping``  `⇔`{result['ping']['latency']}ms`` `±`{result['ping']['jitter']}ms`\n"
         f"`Rate``  `↓`{await unit_convert(result['download']['bandwidth'])}`` `↑`{await unit_convert(result['upload']['bandwidth'])}`\n"
         f"`Data``  `↓`{await unit_convert(result['download']['bytes'], is_bytes=True)}`` `↑`{await unit_convert(result['upload']['bytes'], is_bytes=True)}`\n"
         f"`Time``  ``{result['timestamp'].replace('T', ' ').split('.')[0].replace('Z', '')}`"
     )
-    
+
     photo = await save_speedtest_image(request, result["result"]["url"]) if result["result"]["url"] else None
     return des, photo
 
@@ -184,15 +184,15 @@ async def speedtest(client: Client, message: Message, request: AsyncClient):
         return await msg.edit(lang('arg_error'))
 
     if not photo:
-        return await msg.edit(des, parse_mode="MarkdownV2")
+        return await msg.edit(des)
 
     try:
         if message.reply_to_message:
-            await message.reply_to_message.reply_photo(photo, caption=des, parse_mode="MarkdownV2")
+            await message.reply_to_message.reply_photo(photo, caption=des)
         else:
-            await message.reply_photo(photo, caption=des, parse_mode="MarkdownV2", quote=False, reply_to_message_id=message.reply_to_top_message_id)
+            await message.reply_photo(photo, caption=des, quote=False, reply_to_message_id=message.reply_to_top_message_id)
     except Exception:
-        return await msg.edit(des, parse_mode="MarkdownV2")
+        return await msg.edit(des)
     finally:
         await msg.safe_delete()
         safe_remove(photo)
