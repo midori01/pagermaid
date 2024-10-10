@@ -81,15 +81,18 @@ async def unit_convert(byte, is_bytes=False):
         byte /= power
         zero += 1
     return f"{round(byte, 2)}{units[zero]}"
-    
-async def get_as_info(request: AsyncClient, ip: str):
-    try:
-        response = await request.get(f"http://ip-api.com/json/{ip}?fields=as")
-        as_info = response.json().get('as', 'Unknown AS')
-        return as_info.split()[0] if as_info != 'Unknown AS' else as_info
-    except Exception:
-        return 'Unknown AS'
 
+async def get_ip_api(request: AsyncClient, ip: str):
+    try:
+        response = await request.get(f"http://ip-api.com/json/{ip}?fields=as,countryCode")
+        data = response.json()
+        as_info = data.get('as', 'Unknown AS').split()[0]
+        cc_code = data.get('countryCode', '')
+        cc_flag = ''.join([chr(127397 + ord(c)) for c in cc_code.upper()]) if cc_code else ''
+        return as_info, cc_code, cc_flag
+    except Exception:
+        return 'Unknown AS', '', ''
+        
 async def save_speedtest_image(request, url):
     data = await request.get(url + '.png')
     with open("speedtest.png", mode="wb") as f:
@@ -114,10 +117,12 @@ async def run_speedtest(request: AsyncClient, message: Message):
         return "Unable to connect to the specified server", None
     else:
         return lang('speedtest_ConnectFailure'), None
-
+        
+    as_info, cc_code, cc_flag = await get_ip_api(request, result['interface']['externalIp'])
+    
     des = (
         f"> **SPEEDTEST by OOKLA**\n"
-        f"` ISP``  ``{result['isp']} {await get_as_info(request, result['interface']['externalIp'])}`\n"
+        f"`{cc_flag}{cc_code}``  ``{result['isp']} {as_info}`\n"
         f"`Node``  ``{result['server']['id']}` - `{result['server']['name']}` - `{result['server']['location']}`\n"
         f"`Ping``  `⇔`{result['ping']['latency']}ms`` `±`{result['ping']['jitter']}ms`\n"
         f"`Rate``  `↓`{await unit_convert(result['download']['bandwidth'])}`` `↑`{await unit_convert(result['upload']['bandwidth'])}`\n"
