@@ -33,6 +33,13 @@ def remove_default_server():
     if exists(speedtest_json):
         safe_remove(speedtest_json)
 
+async def update_cli(request: AsyncClient):
+    try:
+        await download_cli(request)
+        return f"> **SPEEDTEST by OOKLA**\n`Speedtest® CLI has been updated to the latest version.`"
+    except Exception as e:
+        return f"> **SPEEDTEST by OOKLA**\n`Failed to update Speedtest® CLI: {e}`"
+        
 async def download_cli(request):
     machine = platform.machine()
     machine = "x86_64" if machine == "AMD64" else machine
@@ -149,10 +156,16 @@ async def get_all_ids(request):
         else ("No Server Available", None)
     )
 
+async def get_installed_cli_version():
+    outs, _, code = await start_speedtest(f"{speedtest_path} --version")
+    if code == 0:
+        return ' '.join(outs.split()[3:5])
+    return "Unknown"
+    
 @listener(command="s",
           need_admin=True,
           description=lang('speedtest_des'),
-          parameters="(list/id/set/rm/config)")
+          parameters="(list/id/set/rm/config/update)")
 async def speedtest(client: Client, message: Message, request: AsyncClient):
     msg = message
     if message.arguments == "list":
@@ -166,7 +179,10 @@ async def speedtest(client: Client, message: Message, request: AsyncClient):
         return await msg.edit(f"> **SPEEDTEST by OOKLA**\n`Default server has been removed.`")
     elif message.arguments == "config":
         server_id = get_default_server() or "Auto"
-        return await msg.edit(f"> **SPEEDTEST by OOKLA**\n`Default Server: {server_id}\nSpeedtest® CLI: v{speedtest_version}`")
+        return await msg.edit(f"> **SPEEDTEST by OOKLA**\n`Default Server: {server_id}\nSpeedtest® CLI: {await get_installed_cli_version()}`")
+    elif message.arguments == "update":
+        result = await update_cli(request)
+        return await msg.edit(result)
     elif len(message.arguments) == 0 or message.arguments.isdigit():
         msg: Message = await message.edit(lang('speedtest_processing'))
         des, photo = await run_speedtest(request, message)
