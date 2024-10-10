@@ -128,7 +128,7 @@ async def run_speedtest(request: AsyncClient, message: Message):
     as_info, cc_code, cc_flag = await get_ip_api(request, result['interface']['externalIp'])
     
     des = (
-        f"> **⚡️SPEEDTEST by OOKLA from {cc_flag}**\n"
+        f"> **⚡️SPEEDTEST by OOKLA @{cc_flag}**\n"
         f"`Info``  ``{result['isp']}`` `[{as_info}](https://bgp.he.net/{as_info})\n"
         f"`Node``  ``{result['server']['id']}` - `{result['server']['name']}` - `{result['server']['location']}`\n"
         f"`Ping``  `⇔`{result['ping']['latency']}ms`` `±`{result['ping']['jitter']}ms`\n"
