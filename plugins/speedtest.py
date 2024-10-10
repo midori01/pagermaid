@@ -129,14 +129,14 @@ async def run_speedtest(request: AsyncClient, message: Message):
 
     des = (
         f"> **SPEEDTEST by OOKLA**\n"
-        f"`{cc_flag}{cc_code}` `  `{result['isp']} [{as_info}](https://bgp.he.net/AS{as_info})`\n"
-        f"`Node` `  `{result['server']['id']}` - `{result['server']['name']}` - `{result['server']['location']}`\n"
-        f"`Ping` `⇔`{result['ping']['latency']}ms` `±`{result['ping']['jitter']}ms`\n"
-        f"`Rate` `↓`{await unit_convert(result['download']['bandwidth'])}` `↑`{await unit_convert(result['upload']['bandwidth'])}`\n"
-        f"`Data` `↓`{await unit_convert(result['download']['bytes'], is_bytes=True)}` `↑`{await unit_convert(result['upload']['bytes'], is_bytes=True)}`\n"
-        f"`Time` `  `{result['timestamp'].replace('T', ' ').split('.')[0].replace('Z', '')}`"
+        f"`{cc_flag}{cc_code}``  ``{result['isp']} [{as_info}](https://bgp.he.net/AS{as_info})`\n"
+        f"`Node``  ``{result['server']['id']}` - `{result['server']['name']}` - `{result['server']['location']}`\n"
+        f"`Ping``  `⇔`{result['ping']['latency']}ms`` `±`{result['ping']['jitter']}ms`\n"
+        f"`Rate``  `↓`{await unit_convert(result['download']['bandwidth'])}`` `↑`{await unit_convert(result['upload']['bandwidth'])}`\n"
+        f"`Data``  `↓`{await unit_convert(result['download']['bytes'], is_bytes=True)}`` `↑`{await unit_convert(result['upload']['bytes'], is_bytes=True)}`\n"
+        f"`Time``  ``{result['timestamp'].replace('T', ' ').split('.')[0].replace('Z', '')}`"
     )
-
+    
     photo = await save_speedtest_image(request, result["result"]["url"]) if result["result"]["url"] else None
     return des, photo
 
