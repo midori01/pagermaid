@@ -161,9 +161,11 @@ async def get_installed_cli_version():
     proc = await create_subprocess_shell(command, stdout=PIPE, stderr=PIPE, stdin=PIPE)
     stdout, stderr = await proc.communicate()
     output = decode_output(stdout)
+    print(f"Output: {output}")
+    print(f"Return Code: {proc.returncode}")
     if proc.returncode == 0:
-        version_info = output.split()
-        if len(version_info) >= 5:
+        if "Speedtest by Ookla" in output:
+            version_info = output.split()
             return f"{version_info[2]} ({version_info[4]})"
     return "Unknown"
 
