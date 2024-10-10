@@ -36,9 +36,9 @@ def remove_default_server():
 async def update_cli(request: AsyncClient):
     try:
         await download_cli(request)
-        return f"> **SPEEDTEST by OOKLA**\n`Speedtest® CLI has been updated to the latest version.`"
+        return f"> **⚡️SPEEDTEST by OOKLA**\n`Speedtest® CLI has been updated to the latest version.`"
     except Exception as e:
-        return f"> **SPEEDTEST by OOKLA**\n`Failed to update Speedtest® CLI: {e}`"
+        return f"> **⚡️SPEEDTEST by OOKLA**\n`Failed to update Speedtest® CLI: {e}`"
         
 async def download_cli(request):
     machine = platform.machine()
@@ -128,8 +128,8 @@ async def run_speedtest(request: AsyncClient, message: Message):
     as_info, cc_code, cc_flag = await get_ip_api(request, result['interface']['externalIp'])
     
     des = (
-        f"> **SPEEDTEST by OOKLA**\n"
-        f"`{cc_flag}{cc_code}``  ``{result['isp']}`` `[{as_info}](https://bgp.he.net/{as_info})\n"
+        f"> **⚡️SPEEDTEST by OOKLA from {cc_flag}**\n"
+        f"`Info``  ``{result['isp']}`` `[{as_info}](https://bgp.he.net/{as_info})\n"
         f"`Node``  ``{result['server']['id']}` - `{result['server']['name']}` - `{result['server']['location']}`\n"
         f"`Ping``  `⇔`{result['ping']['latency']}ms`` `±`{result['ping']['jitter']}ms`\n"
         f"`Rate``  `↓`{await unit_convert(result['download']['bandwidth'])}`` `↑`{await unit_convert(result['upload']['bandwidth'])}`\n"
@@ -148,7 +148,7 @@ async def get_all_ids(request):
 
     return (
         (
-            "> **SPEEDTEST by OOKLA**\n"
+            "> **⚡️SPEEDTEST by OOKLA**\n"
             + "\n".join(f"`{i['id']}` - `{i['name']}` - `{i['location']}`" for i in result['servers']),
             None
         )
@@ -167,13 +167,13 @@ async def speedtest(client: Client, message: Message, request: AsyncClient):
     elif message.arguments.startswith("set"):
         server_id = message.arguments.split()[1]
         save_default_server(server_id)
-        return await msg.edit(f"> **SPEEDTEST by OOKLA**\n`Default server has been set to {server_id}.`")
+        return await msg.edit(f"> **⚡️SPEEDTEST by OOKLA**\n`Default server has been set to {server_id}.`")
     elif message.arguments == "rm":
         remove_default_server()
-        return await msg.edit(f"> **SPEEDTEST by OOKLA**\n`Default server has been removed.`")
+        return await msg.edit(f"> **⚡️SPEEDTEST by OOKLA**\n`Default server has been removed.`")
     elif message.arguments == "config":
         server_id = get_default_server() or "Auto"
-        return await msg.edit(f"> **SPEEDTEST by OOKLA**\n`Default Server: {server_id}\nSpeedtest® CLI: {speedtest_version}`")
+        return await msg.edit(f"> **⚡️SPEEDTEST by OOKLA**\n`Default Server: {server_id}\nSpeedtest® CLI: {speedtest_version}`")
     elif message.arguments == "update":
         result = await update_cli(request)
         return await msg.edit(result)
